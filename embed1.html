@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Flourish Hair Quiz</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+  background: #f3f3f3;
+  color: #4a2b16;
+}
+
+/* Layout */
+.page {
+  position: relative;
+  padding: 60px 80px;
+  max-width: 900px;
+}
+
+/* Logo */
+.logo {
+  width: 140px;
+  margin-bottom: 40px;
+}
+
+/* Question Styling */
+.step {
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+h3 {
+  font-size: 26px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.subtext {
+  font-size: 15px;
+  color: #7b6a5c;
+  margin-bottom: 30px;
+}
+
+/* Option Buttons */
+.option-group {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.option {
+  position: relative;
+}
+
+.option input[type="radio"] {
+  display: none;
+}
+
+.option label {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px 18px;
+  border: 1px solid #8b6b52;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 16px;
+}
+
+.option label:hover {
+  background: #f4ebe5;
+}
+
+.option input[type="radio"]:checked + label {
+  background: #f0e0d4;
+  border-color: #6d3f1f;
+}
+
+.letter {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #8b6b52;
+  border-radius: 4px;
+  text-align: center;
+  line-height: 26px;
+  font-size: 14px;
+}
+
+/* Button */
+button {
+  background: #f2c23e;
+  border: none;
+  padding: 12px 26px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: 0.2s ease;
+}
+
+button:hover {
+  background: #e0b132;
+}
+
+/* Output box */
+.out {
+  margin-top: 40px;
+  background: white;
+  padding: 20px;
+  border-radius: 6px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="page">
+
+<img src="logo.png" class="logo" alt="Flourish Logo">
+
+<form name="my-form">
+
+<div class="step">3 →</div>
+
+<h3>Would you describe your hair as: *</h3>
+<p class="subtext">*Thickness refers to the width of a single strand of hair.</p>
+
+<div class="option-group">
+
+  <div class="option">
+    <input type="radio" id="thin" name="question3" value="Thin">
+    <label for="thin">
+      <span class="letter">A</span> Thin
+    </label>
+  </div>
+
+  <div class="option">
+    <input type="radio" id="thick" name="question3" value="Thick">
+    <label for="thick">
+      <span class="letter">B</span> Thick
+    </label>
+  </div>
+
+  <div class="option">
+    <input type="radio" id="between" name="question3" value="In-between">
+    <label for="between">
+      <span class="letter">C</span> In-between
+    </label>
+  </div>
+
+</div>
+
+<button type="submit">OK</button>
+
+</form>
+
+<div class="out">
+  <code></code>
+</div>
+
+</div>
+
+<script>
+let form = document.forms["my-form"];
+form.addEventListener("submit", getValues);
+
+function getValues(event){
+  event.preventDefault();
+
+  let formData = {
+    "Question3" : this.question3.value
+  };
+
+  let out = `<p>Question 3: <span>${formData.Question3}</span></p>`;
+  document.querySelector(".out code").innerHTML = out;
+}
+</script>
+
+</body>
+</html>

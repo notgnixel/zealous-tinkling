@@ -1,0 +1,145 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+  background-color: #f3f3f3;
+  color: #4a2b16;
+  height: 100vh;
+  overflow: scroll;
+}
+
+.page {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+}
+
+/* Logo */
+.logo {
+  position: absolute;
+  top: 30px;
+  left: 40px;
+  width: 130px;
+}
+
+/* Background Image */
+.bg-image {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 50%;
+  height: 100%;
+  background: url('hair-bg.png') no-repeat right bottom;
+  background-size: cover;
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+/* Content */
+.content {
+  position: relative;
+  max-width: 600px;
+  padding: 120px 40px;
+}
+
+.step {
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+h1 {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.required {
+  color: #7c4d2a;
+}
+
+.subtitle {
+  font-size: 15px;
+  color: #7b6a5c;
+  margin-bottom: 35px;
+}
+
+/* Options */
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px 18px;
+  border: 1px solid #8b6b52;
+  background: #fff;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.option:hover {
+  background: #f4ebe5;
+}
+
+.option.selected {
+  background: #f0e0d4;
+  border-color: #6d3f1f;
+}
+
+.letter {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #8b6b52;
+  border-radius: 4px;
+  text-align: center;
+  line-height: 26px;
+  font-size: 14px;
+}
+
+/* OK Button */
+.ok-btn {
+  background: #f2c23e;
+  border: none;
+  padding: 12px 26px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.ok-btn:disabled {
+  background: #e2d7b5;
+  cursor: not-allowed;
+}
+
+.ok-btn:not(:disabled):hover {
+  background: #e0b132;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .bg-image {
+    display: none;
+  }
+
+  .content {
+    padding: 100px 25px;
+  }
+
+  h1 {
+    font-size: 22px;
+  }
+}

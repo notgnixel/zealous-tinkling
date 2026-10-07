@@ -1,0 +1,146 @@
+<html>
+<head>
+	<style>
+		input{
+			border-style: none; 
+			background: white;
+		}
+	</style>
+</head>
+<body>
+	<!-- Form element -->
+      <form name="my-form">
+	<h1>Welcome #FlourishFam!</h1>
+	<p>Begin your consultation below for a personalized product recommendation for your hair type & goal.</p>
+	<p>Begin the Hair Quiz</p>
+	<br>
+	<h3>1-> Which image best represents your hair type?*</h3>
+
+	<form id="myForm">
+	<input type="radio" name="question1" value="1">
+	ImageA(2a)
+	<input type="radio" name="question1" value="2">
+	ImageA(2b)
+	<input type="radio" name="question1" value="3">
+	ImageA(2c)
+	<input type="radio" name="question1" value="4">
+	ImageA(3a)
+	<input type="radio" name="question1" value="5">
+	ImageA(3b)
+	<input type="radio" name="question1" value="6">
+	ImageA(3c)
+	<input type="radio" name="question1" value="7">
+	ImageA(4a)
+	<input type="radio" name="question1" value="8">
+	ImageA(4b)
+	<input type="radio" name="question1" value="9">
+	ImageA(4c)
+
+	<br>
+	<h3>2-> What is your hair porosity?*</h3>
+	<p>*Hair porosity refers to your hairs ability to absorb/retain moisture. <br>To find out your hair's porosity; Take a couple strands of your hair and drop them into a cup of water. Let them sit for 2-4 minutes. If your hair floats, you have low porosity. If it sinks, you have high porosity. If it floats in the middle, you have medium porosity.</p>
+	<p>Hair porosity Image(.png)</p>
+	<input type="radio" name="question2" value="1">A(Low Porosity)
+	<input type="radio" name="question2" value="1">B(Medium Porosity)
+	<input type="radio" name="question2" value="1">C(High Porosity)
+	<br>
+	<h3>3-> Would you describe your hair as:*</h3>
+	<p>Thickness refers to width of a single strand of hair.</p>
+	<input type="radio" name="question3" value="1">A(Thin)
+	
+	<input type="radio" name="question3" value="1">B(Thick))
+	
+	<input type="radio" name="question3" value="1">C(In-between)
+	
+	<br>
+	<h3>4-> What is your hair density?*</h3>
+	<p>*Hair density refers to the amount of hair on your head.<br>To find out your hair's density, take a front section of your hair and part it with your hands. If you can visibly see sections of your scalp underneath, then your hair is thin. If you barely see your scalp at all, your hair is thick. If it's somewhere in-between, then your hair has a medium density.</p>
+	<input type="radio" name="question4" value="1">A(Thin)
+	
+	<input type="radio" name="question4" value="1">B(Thick))
+	
+	<input type="radio" name="question4" value="1">C(Medium)
+	
+
+	<br>
+	<h3>5-> Is your hair prine to dryness?*</h3>
+	<input type="radio" name="question5" value="1">A(Yes! I struggle to retain moisture.)
+	
+	<input type="radio" name="question5" value="1">B(Somewhat- it depends ont the season.)
+	
+	<input type="radio" name="question5" value="1">C(No- My hair holds moisture well.)
+	
+	<input type="radio" name="question5" value="1">D(No- My hair is naturally oily.)
+	
+	<br><h3>6-> Is your hair...*</h3>
+	<p>~Color-treated<br>~Chemically processed<br>~Damaged</p>
+	<input type="radio" name="question6" value="1">A(Trainsitioning from the above)
+	
+	<input type="radio" name="question6" value="1">B(Yes)
+	
+	<input type="radio" name="question6" value="1">C(No)
+	
+	<br>
+	<h3>7-> Yay! Congrats on being on step closer to reaching all your hair goals #FlourishFam!*</h3>
+	<p>Enter your email to get access to your exclusive #Flourish results & determine the products specific to you!</p>
+	<textarea name="email"></textarea>
+	
+	<!-- Submit button -->
+         <button type="submit" name="submit">Submit</button>
+</form>
+
+	<h3><button type="button" style="color: black; background-color: rgba(234, 191, 66, 1); border-style: none;"><b>Find Your Products Here</b></button></h3>
+
+
+	<div class="out">
+         <code>
+            <p>Question 1:</p>
+            <p>Question 2:</p>
+            <p>Question 3:</p>
+            <p>Question 4:</p>
+            <p>Question 5:</p>
+         </code>
+      </div>
+<script>
+let form = document.forms["my-form"];
+form.addEventListener("submit", getValues);
+
+function getValues(event){
+	event.preventDefault();
+
+	let formData = {
+		"Question1" : this.question1.value,
+		"Question2" : this.question2.value,
+		"Question3" : this.question3.value,
+		"Question4" : this.question4.value,
+		"Question5" : this.question5.value,
+		"Question6" : this.question6.value,
+		"Question7" : this.email.value
+	}
+
+// logic for product picker
+	let url = 'curl.com'; 
+	switch(formData.Question1,formData.Question2,formData.Question3,formData.Question4,formData.Question5,formData.Question6) {
+	case 1,1,1,1,1,1:
+		// The "So Wavy" Hair Souffle
+		break;
+	case 2,2,2,2,2,2:
+		// The "Curl Power" Hair Souffle
+		break;
+	case 3,3,3,3,3,3:
+		// The "Lovely Kinks" Hair Souffle
+		break;
+	default:
+		// code block
+	}
+
+
+	let out = `<p>Question 1: <span> ${formData.Question1} </span></p><p>Question 2: <span>${formData.Question2}</span></p><p>Question 3: <span>${formData.Question3}</span></p><p>Question 4: <span>${formData.Question4}</span></p><p>Question 5: <span>${formData.Question5}</span></p><p>Question 6: <span>${formData.Question6}</span></p><p>Question 7: <span>${formData.Question7}</span></p>`;
+
+	document.querySelector(".out code").innerHTML = out;
+}
+</script>
+<!--Typeform login: email: info@flourishbysage.com | Password: Flourish2025!-->
+<!--Use a Modal Box-->
+</body>
+</html>

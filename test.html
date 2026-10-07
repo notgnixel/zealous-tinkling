@@ -1,0 +1,31 @@
+<form id="myForm">
+  <input type="text" name="name" placeholder="Name" required />
+  <input type="email" name="email" placeholder="Email" required />
+  <input type="email" name="email" placeholder="Email" required />
+  <input type="email" name="email" placeholder="Email" required />
+  <input type="email" name="email" placeholder="Email" required />
+  <textarea name="message" placeholder="Message"></textarea>
+  <button type="submit">Submit</button>
+</form>
+
+<script>
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyO-hEptHZy3sHyyxTDH70_sIb4GQx3bHAzeQLl1cok1uVZF9nlw7aWvrr87vP4e4Kk/exec";
+/*Deployment ID: AKfycbzrRzz3gEJKgPf_Om9jXC_AWB_m_hOO2Egk3MyaoxWlY7eKSxHDA12whgwAoDYEIHCe*/
+
+document.getElementById("myForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  const params = new URLSearchParams({
+    name: this.name.value,
+    email: this.email.value,
+    message: this.message.value
+  });
+
+  fetch(SCRIPT_URL + "?" + params.toString(), {
+    method: "GET",
+    mode: "no-cors"
+  });
+
+  alert("Submitted!");
+});
+</script>

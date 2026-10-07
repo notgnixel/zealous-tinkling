@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Flourish Hair Quiz</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:"Helvetica Neue", Arial, sans-serif; }
+
+body {
+  background:#f3f3f3;
+  color:#4a2b16;
+}
+
+.quiz-container {
+  max-width:750px;
+  margin:auto;
+  padding:80px 40px;
+}
+
+.logo {
+  width:130px;
+  margin-bottom:40px;
+}
+
+/* Progress Bar */
+.progress-bar {
+  height:6px;
+  background:#e5d7c5;
+  border-radius:10px;
+  overflow:hidden;
+  margin-bottom:30px;
+}
+
+.progress-fill {
+  height:100%;
+  width:0%;
+  background:#f2c23e;
+  transition:width .4s ease;
+}
+
+/* Steps */
+.step {
+  display:none;
+  animation:fadeSlide .4s ease;
+}
+
+.step.active { display:block; }
+
+@keyframes fadeSlide {
+  from { opacity:0; transform:translateX(10px); }
+  to { opacity:1; transform:translateX(0); }
+}
+
+h2 { font-size:26px; margin-bottom:10px; }
+.subtext { font-size:14px; color:#7b6a5c; margin-bottom:25px; }
+
+.option-group { display:flex; flex-direction:column; gap:15px; }
+
+.option input { display:none; }
+
+.option label {
+  display:flex;
+  align-items:center;
+  gap:15px;
+  padding:14px 18px;
+  border:1px solid #8b6b52;
+  border-radius:6px;
+  background:white;
+  cursor:pointer;
+  transition:.2s ease;
+}
+
+.option label:hover { background:#f4ebe5; }
+
+.option input:checked + label {
+  background:#f0e0d4;
+  border-color:#6d3f1f;
+}
+
+.letter {
+  width:28px;
+  height:28px;
+  border:1px solid #8b6b52;
+  border-radius:4px;
+  text-align:center;
+  line-height:26px;
+  font-size:14px;
+}
+
+/* Buttons */
+.button-row {
+  margin-top:30px;
+  display:flex;
+  justify-content:space-between;
+}
+
+button {
+  background:#f2c23e;
+  border:none;
+  padding:10px 22px;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+button.secondary {
+  background:#ddd;
+}
+
+button:hover { opacity:.9; }
+
+/* Email */
+input[type="email"] {
+  width:100%;
+  padding:12px;
+  border:1px solid #8b6b52;
+  border-radius:6px;
+}
+
+/* Result */
+.result {
+  display:none;
+  text-align:center;
+  animation:fadeSlide .5s ease;
+}
+
+.result h2 {
+  font-size:32px;
+  margin-bottom:15px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="quiz-container">
+
+<img src="logo.png" class="logo">
+
+<div class="progress-bar">
+  <div class="progress-fill" id="progressFill"></div>
+</div>
+
+<form id="quizForm">
+
+<!-- STEP TEMPLATE -->
+<div class="step active" data-step="1">
+<h2>1 → Hair Type *</h2>
+<div class="option-group">
+  <div class="option"><input type="radio" name="q1" value="wavy" id="q1a"><label for="q1a"><span class="letter">A</span> Wavy</label></div>
+  <div class="option"><input type="radio" name="q1" value="curly" id="q1b"><label for="q1b"><span class="letter">B</span> Curly</label></div>
+  <div class="option"><input type="radio" name="q1" value="coily" id="q1c"><label for="q1c"><span class="letter">C</span> Coily</label></div>
+</div>
+<div class="button-row">
+<button type="button" onclick="nextStep()">Next</button>
+</div>
+</div>
+
+<div class="step" data-step="2">
+<h2>2 → Porosity *</h2>
+<div class="option-group">
+  <div class="option"><input type="radio" name="q2" value="light" id="q2a"><label for="q2a"><span class="letter">A</span> Low</label></div>
+  <div class="option"><input type="radio" name="q2" value="balanced" id="q2b"><label for="q2b"><span class="letter">B</span> Medium</label></div>
+  <div class="option"><input type="radio" name="q2" value="heavy" id="q2c"><label for="q2c"><span class="letter">C</span> High</label></div>
+</div>
+<div class="button-row">
+<button type="button" class="secondary" onclick="prevStep()">Back</button>
+<button type="button" onclick="nextStep()">Next</button>
+</div>
+</div>
+
+<!-- Repeat structure up to step 6 as needed -->
+
+<div class="step" data-step="7">
+<h2>Enter your email to view results *</h2>
+<input type="email" name="email" required>
+<div class="button-row">
+<button type="button" class="secondary" onclick="prevStep()">Back</button>
+<button type="submit">See My Results</button>
+</div>
+</div>
+
+</form>
+
+<div class="result" id="resultBox">
+<h2 id="resultTitle"></h2>
+<p>Your personalized product recommendation is ready.</p>
+<button onclick="goToProduct()">Shop Now</button>
+</div>
+
+</div>
+
+<script>
+let currentStep = 1;
+const totalSteps = 7;
+
+function updateProgress(){
+  document.getElementById("progressFill").style.width =
+    ((currentStep-1)/(totalSteps-1))*100 + "%";
+}
+
+function nextStep(){
+  const current = document.querySelector(`.step[data-step="${currentStep}"]`);
+  const checked = current.querySelector("input:checked");
+  if(!checked){ alert("Please select an option."); return; }
+
+  current.classList.remove("active");
+  currentStep++;
+  document.querySelector(`.step[data-step="${currentStep}"]`).classList.add("active");
+  updateProgress();
+}
+
+function prevStep(){
+  document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove("active");
+  currentStep--;
+  document.querySelector(`.step[data-step="${currentStep}"]`).classList.add("active");
+  updateProgress();
+}
+
+updateProgress();
+
+/* ADVANCED PRODUCT MATCHING ENGINE */
+document.getElementById("quizForm").addEventListener("submit", function(e){
+e.preventDefault();
+
+const answers = {
+  q1: document.querySelector('input[name="q1"]:checked')?.value,
+  q2: document.querySelector('input[name="q2"]:checked')?.value
+};
+
+/* Scoring System */
+let scores = {
+  wavy:0,
+  curly:0,
+  coily:0
+};
+
+if(answers.q1 === "wavy") scores.wavy += 2;
+if(answers.q1 === "curly") scores.curly += 2;
+if(answers.q1 === "coily") scores.coily += 2;
+
+if(answers.q2 === "light") scores.wavy += 1;
+if(answers.q2 === "balanced") scores.curly += 1;
+if(answers.q2 === "heavy") scores.coily += 1;
+
+/* Determine Winner */
+let result = Object.keys(scores).reduce((a,b)=> scores[a]>scores[b]?a:b);
+
+let productName = "";
+let url = "";
+
+if(result === "wavy"){
+  productName = "The 'So Wavy' Hair Soufflé";
+  url = "sowavy.html";
+}
+if(result === "curly"){
+  productName = "The 'Curl Power' Hair Soufflé";
+  url = "curlpower.html";
+}
+if(result === "coily"){
+  productName = "The 'Lovely Kinks' Hair Soufflé";
+  url = "lovelykinks.html";
+}
+
+document.getElementById("quizForm").style.display="none";
+document.getElementById("resultBox").style.display="block";
+document.getElementById("resultTitle").innerText = productName;
+
+window.productURL = url;
+});
+
+function goToProduct(){
+  window.location.href = window.productURL;
+}
+</script>
+
+</body>
+</html>
