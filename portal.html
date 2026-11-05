@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Flourish Quiz Results</title>
+<style>
+  :root { --ink:#000; --muted:#5d5d5d; --line:#e3ddd5; --bg:#faf7f3; --card:#fff; --gold:#d4a017; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:"Helvetica Neue",Arial,sans-serif; background:var(--bg); color:var(--ink); }
+  header { background:#000; color:#fff; padding:18px 24px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+  header h1 { margin:0; font-size:1.25rem; letter-spacing:.04em; }
+  header .actions { display:flex; gap:8px; flex-wrap:wrap; }
+  main { max-width:1280px; margin:0 auto; padding:24px 16px 60px; }
+  button { font:inherit; font-weight:700; letter-spacing:.05em; background:#000; color:#fff; border:0; border-radius:4px; padding:10px 16px; cursor:pointer; }
+  button:hover { background:var(--gold); }
+  button.ghost { background:transparent; border:1px solid #fff; }
+  button.light { background:#fff; color:#000; border:1px solid var(--line); }
+  button.light:hover { background:#f6f1ea; }
+  button.danger { background:#b00020; }
+  button.danger:hover { background:#7d0016; }
+  button:disabled { opacity:.5; cursor:default; }
+  .login { max-width:420px; margin:80px auto; background:var(--card); padding:28px; border-radius:10px; border:1px solid var(--line); }
+  .login input { width:100%; padding:12px; font-size:1rem; border:1px solid var(--line); border-radius:4px; margin:12px 0; }
+  .err { color:#b00020; margin-top:10px; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin-bottom:16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; }
+  .card .n { font-size:2rem; font-weight:700; }
+  .card .l { color:var(--muted); font-size:.9rem; }
+  .panels { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; margin-bottom:16px; }
+  .panel { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; }
+  .panel.wide { grid-column:1/-1; }
+  .panel h2 { margin:0 0 12px; font-size:1rem; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
+  .panel h2 select { font-size:.85rem; padding:4px 8px; border:1px solid var(--line); border-radius:4px; }
+  .panel .note { color:var(--muted); font-size:.82rem; margin-top:8px; }
+  .bar-row { display:flex; align-items:center; gap:10px; margin:8px 0; font-size:.92rem; }
+  .bar-row .name { width:130px; flex:none; }
+  .bar-row .track { flex:1; background:#f1ece5; border-radius:4px; height:16px; overflow:hidden; }
+  .bar-row .fill { height:100%; background:#000; }
+  .bar-row .cnt { width:110px; text-align:right; color:var(--muted); flex:none; font-size:.85rem; }
+  .legend { display:flex; gap:14px; font-size:.82rem; color:var(--muted); margin-top:6px; }
+  .legend i { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:middle; }
+  svg.trend { width:100%; height:auto; display:block; }
+  svg.trend text { font-size:11px; fill:#5d5d5d; font-family:inherit; }
+  .filters { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; align-items:center; }
+  .filters input, .filters select { padding:10px; font-size:.95rem; border:1px solid var(--line); border-radius:4px; background:#fff; }
+  .filters input[type=search] { flex:1; min-width:200px; }
+  .tablewrap { background:var(--card); border:1px solid var(--line); border-radius:10px; overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  th { background:#f6f1ea; position:sticky; top:0; cursor:pointer; user-select:none; }
+  th.nosort { cursor:default; }
+  tbody tr { cursor:pointer; }
+  tbody tr:hover { background:#fbf6ee; }
+  tr.flagged td { background:#fff3f3; }
+  .pill { display:inline-block; padding:2px 10px; border-radius:99px; font-size:.82rem; font-weight:700; background:#eee; }
+  .pill.so_wavy { background:#dff1ff; } .pill.curl_power { background:#fff0c9; } .pill.lovely_kinks { background:#f2dcff; }
+  .tag { display:inline-block; margin-left:6px; font-size:.75rem; color:#7a5a00; background:#fff0c9; border-radius:4px; padding:1px 6px; }
+  .muted { color:var(--muted); }
+  .count { margin:10px 2px; color:var(--muted); font-size:.9rem; }
+  .more { text-align:center; padding:12px; }
+  [hidden] { display:none !important; }
+  /* detail drawer */
+  .overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:50; display:flex; justify-content:flex-end; }
+  .drawer { background:#fff; width:min(520px,100%); height:100%; overflow-y:auto; padding:22px; }
+  .drawer h2 { margin:0 0 4px; font-size:1.2rem; word-break:break-all; }
+  .drawer .sub { color:var(--muted); font-size:.9rem; margin-bottom:16px; }
+  .kv { display:grid; grid-template-columns:150px 1fr; gap:6px 12px; font-size:.95rem; margin-bottom:16px; }
+  .kv .k { color:var(--muted); }
+  .drawer h3 { font-size:.95rem; margin:18px 0 8px; }
+  .drawer pre { background:#f6f1ea; padding:10px; border-radius:6px; font-size:.82rem; white-space:pre-wrap; word-break:break-word; margin:0; }
+  .drawer textarea { width:100%; min-height:100px; padding:10px; font:inherit; border:1px solid var(--line); border-radius:6px; }
+  .drawer label.flag { display:flex; gap:8px; align-items:center; margin:10px 0; font-weight:600; }
+  .drawer .btns { display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+  .drawer .others div { padding:6px 0; border-bottom:1px solid var(--line); font-size:.9rem; }
+  .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#000; color:#fff; padding:10px 18px; border-radius:6px; z-index:80; font-size:.92rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Flourish Quiz Results</h1>
+  <div class="actions" id="headerActions" hidden>
+    <button class="ghost" id="refreshBtn">Refresh</button>
+    <button class="ghost" id="mailBtn">Export mailing list</button>
+    <button class="ghost" id="csvBtn">Export all (CSV)</button>
+  </div>
+</header>
+
+<div class="login" id="login" hidden>
+  <h2 style="margin-top:0">Enter portal key</h2>
+  <input type="password" id="keyInput" placeholder="Portal key" autocomplete="off">
+  <button id="keyBtn">View results</button>
+  <div class="err" id="loginErr"></div>
+</div>
+
+<main id="app" hidden>
+  <div class="cards" id="cards"></div>
+
+  <div class="panels">
+    <div class="panel wide">
+      <h2><span>Quizzes over time</span>
+        <select id="trendGran"><option value="day">Daily (last 30 days)</option><option value="week">Weekly (last 26 weeks)</option><option value="month">Monthly (last 24 months)</option></select>
+      </h2>
+      <div id="trend"></div>
+      <div class="legend"><span><i style="background:#000"></i>Completed</span><span><i style="background:#d4a017"></i>Dropped off</span></div>
+    </div>
+    <div class="panel"><h2>Product matches</h2><div id="productBars"></div></div>
+    <div class="panel"><h2>Shop Now click rate by match</h2><div id="convBars"></div><div class="note" id="convNote"></div></div>
+    <div class="panel"><h2>Where people drop off</h2><div id="dropBars"></div></div>
+    <div class="panel"><h2>Typical time per question</h2><div id="timeBars"></div><div class="note">Median seconds, new quiz only. Longer times can point to confusing questions.</div></div>
+    <div class="panel"><h2>Hair types</h2><div id="typeBars"></div></div>
+  </div>
+
+  <div class="filters">
+    <input type="search" id="search" placeholder="Search email, notes, or answers...">
+    <select id="productFilter">
+      <option value="">All products</option>
+      <option value="so_wavy">So Wavy</option>
+      <option value="curl_power">Curl Power</option>
+      <option value="lovely_kinks">Lovely Kinks</option>
+    </select>
+    <select id="typeFilter"><option value="">All hair types</option></select>
+    <select id="sourceFilter">
+      <option value="">New + old quiz</option>
+      <option value="new">New quiz only</option>
+      <option value="old">Old quiz only</option>
+    </select>
+    <select id="rangeFilter">
+      <option value="0">All time</option>
+      <option value="1">Last 24 hours</option>
+      <option value="7">Last 7 days</option>
+      <option value="30">Last 30 days</option>
+    </select>
+    <select id="flagFilter">
+      <option value="hide">Hide flagged</option>
+      <option value="show">Show flagged too</option>
+      <option value="only">Only flagged</option>
+    </select>
+  </div>
+  <div class="count" id="count"></div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr id="thead"></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="more" id="moreWrap" hidden><button class="light" id="moreBtn">Show more</button></div>
+  </div>
+  <p class="muted" style="font-size:.85rem">Flagged rows (tests, spam) are always left out of the charts and cards above. Click any row for details, notes, flagging, or deleting.</p>
+</main>
+
+<div class="overlay" id="overlay" hidden><div class="drawer" id="drawer"></div></div>
+
+<script>
+// ===== CONFIG: same values as the quiz (Supabase > Project Settings > API) =====
+var SUPABASE_URL = "https://jtbvhjmejhozhtndxlyj.supabase.co";
+var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0YnZoam1lamhvemh0bmR4bHlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM4Mjc1MDUsImV4cCI6MjEwOTQwMzUwNX0.F8_QimXKJ47fTDnOqcJKgSRiiUP-rGdlWwQ5JyOWI8M";
+
+var NAMES = { so_wavy:"So Wavy", curl_power:"Curl Power", lovely_kinks:"Lovely Kinks" };
+var STEPS = { 2:"Q1 Hair type", 3:"Q2 Density", 4:"Q3 Thickness", 5:"Q4 Porosity", 6:"Q4A Porosity fallback", 7:"Q5 Product behavior" };
+var TIME_STEPS = { 1:"Intro", 2:"Q1 Hair type", 3:"Q2 Density", 4:"Q3 Thickness", 5:"Q4 Porosity", 6:"Q4A Fallback", 7:"Q5 Behavior", 8:"Email" };
+var COLS = [
+  ["flagged","", false], ["created_at","Date",true], ["email","Email",true], ["hair_type","Hair type",true],
+  ["density","Density",true], ["thickness","Thickness",true], ["porosity","Porosity",true],
+  ["porosity_fallback","Porosity fallback",true], ["product_behavior","Product behavior",true],
+  ["product","Match",true], ["shop_clicked_at","Shop Now",true]
+];
+var ALL = [], KEY = "", sortKey = "created_at", sortDir = -1, shown = 300, openId = null;
+
+function $(id){ return document.getElementById(id); }
+function pretty(v){ return v ? String(v).replace(/_/g," ").replace(/^./,function(c){return c.toUpperCase();}) : ""; }
+function fmtDate(v){ return v ? new Date(v).toLocaleString([], {dateStyle:"medium", timeStyle:"short"}) : ""; }
+function isLegacy(r){ return r.source === "legacy_import"; }
+function toast(msg){ var t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t); setTimeout(function(){t.remove();},2600); }
+function getKeyFromUrl(){ var m = location.hash.match(/[#&]k=([^&]+)/); return m ? decodeURIComponent(m[1]) : ""; }
+
+async function rpc(fn, args){
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) throw new Error("Portal is not configured: add SUPABASE_URL and SUPABASE_ANON_KEY at the top of portal.html.");
+  var r = await fetch(SUPABASE_URL + "/rest/v1/rpc/" + fn, {
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "apikey":SUPABASE_ANON_KEY, "Authorization":"Bearer "+SUPABASE_ANON_KEY },
+    body: JSON.stringify(args)
+  });
+  if (!r.ok) {
+    var t = await r.text();
+    if (t.indexOf("unauthorized") > -1) throw new Error("That key isn't valid.");
+    if (r.status === 404) throw new Error("Database function missing. Run supabase-portal-v2.sql in Supabase.");
+    throw new Error("Request failed (" + r.status + ").");
+  }
+  var txt = await r.text();
+  return txt ? JSON.parse(txt) : null;
+}
+
+async function start(key){
+  $("loginErr").textContent = "";
+  try {
+    ALL = await rpc("get_quiz_results", { p_secret: key });
+    KEY = key;
+    $("login").hidden = true; $("app").hidden = false; $("headerActions").hidden = false;
+    render();
+  } catch (e) {
+    $("app").hidden = true; $("headerActions").hidden = true; $("login").hidden = false;
+    $("loginErr").textContent = e.message;
+  }
+}
+
+/* ---------- small chart helpers ---------- */
+function bars(el, entries, opts){
+  opts = opts || {};
+  el.textContent = "";
+  if (!entries.length) { el.innerHTML = '<span class="muted">No data yet</span>'; return; }
+  var max = opts.max || Math.max.apply(null, entries.map(function(e){return e[1];}).concat([1]));
+  entries.forEach(function(e){
+    var row = document.createElement("div"); row.className="bar-row";
+    var n = document.createElement("div"); n.className="name"; n.textContent=e[0];
+    var tr = document.createElement("div"); tr.className="track";
+    var f = document.createElement("div"); f.className="fill"; f.style.width = Math.min(100, e[1]/max*100)+"%"; tr.appendChild(f);
+    var c = document.createElement("div"); c.className="cnt"; c.textContent = e[2] != null ? e[2] : e[1];
+    row.appendChild(n); row.appendChild(tr); row.appendChild(c); el.appendChild(row);
+  });
+}
+function tally(list, fn){
+  var o = {}; list.forEach(function(x){ var k=fn(x); if(k) o[k]=(o[k]||0)+1; });
+  return Object.keys(o).map(function(k){return [k,o[k]];}).sort(function(a,b){return b[1]-a[1];});
+}
+function median(a){ if(!a.length) return 0; a=a.slice().sort(function(x,y){return x-y;}); var m=Math.floor(a.length/2); return a.length%2?a[m]:(a[m-1]+a[m])/2; }
+
+/* ---------- trend chart (stacked SVG bars) ---------- */
+function pad(n){ return (n<10?"0":"")+n; }
+function startOf(d, gran){
+  var x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  if (gran === "week") { var dow = (x.getDay()+6)%7; x.setDate(x.getDate()-dow); }
+  if (gran === "month") x.setDate(1);
+  return x;
+}
+function keyOf(d, gran){ var x=startOf(d,gran); return x.getFullYear()+"-"+pad(x.getMonth()+1)+"-"+pad(x.getDate()); }
+function drawTrend(completed, drops){
+  var gran = $("trendGran").value, N = gran==="day"?30:gran==="week"?26:24;
+  var buckets = [], cur = startOf(new Date(), gran);
+  for (var i=0;i<N;i++){
+    buckets.unshift({ start:new Date(cur), key:keyOf(cur,gran), c:0, d:0 });
+    if (gran==="day") cur.setDate(cur.getDate()-1);
+    else if (gran==="week") cur.setDate(cur.getDate()-7);
+    else cur.setMonth(cur.getMonth()-1);
+  }
+  var idx = {}; buckets.forEach(function(b,i){ idx[b.key]=i; });
+  completed.forEach(function(r){ var k=keyOf(new Date(r.created_at),gran); if(k in idx) buckets[idx[k]].c++; });
+  drops.forEach(function(r){ var k=keyOf(new Date(r.created_at),gran); if(k in idx) buckets[idx[k]].d++; });
+  var max = Math.max.apply(null, buckets.map(function(b){return b.c+b.d;}).concat([1]));
+  var step = max<=5?1:max<=10?2:max<=25?5:max<=50?10:max<=100?20:Math.pow(10,Math.floor(Math.log10(max)))/ (max/Math.pow(10,Math.floor(Math.log10(max)))>=5?1:2);
+  var top = Math.ceil(max/step)*step;
+  var W=720,H=240,L=38,B=34,T=10,R=8, pw=W-L-R, ph=H-T-B, bw=pw/N;
+  var ns="http://www.w3.org/2000/svg";
+  var svg=document.createElementNS(ns,"svg"); svg.setAttribute("viewBox","0 0 "+W+" "+H); svg.setAttribute("class","trend");
+  function el(n,a,txt){ var e=document.createElementNS(ns,n); for(var k in a) e.setAttribute(k,a[k]); if(txt!=null) e.textContent=txt; svg.appendChild(e); return e; }
+  for (var v=0; v<=top; v+=step){
+    var y=T+ph-(v/top)*ph;
+    el("line",{x1:L,x2:W-R,y1:y,y2:y,stroke:"#e3ddd5"});
+    el("text",{x:L-6,y:y+4,"text-anchor":"end"},v);
+  }
+  var every = N<=12?1:N<=26?2:5;
+  buckets.forEach(function(b,i){
+    var x=L+i*bw+bw*0.15, w=bw*0.7, hc=(b.c/top)*ph, hd=(b.d/top)*ph;
+    var label = fmtDateShort(b.start,gran) + ": " + b.c + " completed, " + b.d + " dropped off";
+    var g=el("g",{});
+    if (b.c){ var r1=document.createElementNS(ns,"rect"); r1.setAttribute("x",x); r1.setAttribute("y",T+ph-hc); r1.setAttribute("width",w); r1.setAttribute("height",hc); r1.setAttribute("fill","#000"); var t1=document.createElementNS(ns,"title"); t1.textContent=label; r1.appendChild(t1); svg.appendChild(r1); }
+    if (b.d){ var r2=document.createElementNS(ns,"rect"); r2.setAttribute("x",x); r2.setAttribute("y",T+ph-hc-hd); r2.setAttribute("width",w); r2.setAttribute("height",hd); r2.setAttribute("fill","#d4a017"); var t2=document.createElementNS(ns,"title"); t2.textContent=label; r2.appendChild(t2); svg.appendChild(r2); }
+    if (!b.c && !b.d){ var r3=document.createElementNS(ns,"rect"); r3.setAttribute("x",x); r3.setAttribute("y",T); r3.setAttribute("width",w); r3.setAttribute("height",ph); r3.setAttribute("fill","transparent"); var t3=document.createElementNS(ns,"title"); t3.textContent=label; r3.appendChild(t3); svg.appendChild(r3); }
+    if ((N-1-i)%every===0) el("text",{x:x+w/2,y:H-12,"text-anchor":"middle"},fmtDateShort(b.start,gran));
+  });
+  $("trend").textContent=""; $("trend").appendChild(svg);
+}
+function fmtDateShort(d,gran){
+  if (gran==="month") return d.toLocaleString([], {month:"short", year:"2-digit"});
+  return d.toLocaleString([], {month:"short", day:"numeric"});
+}
+
+/* ---------- filtering / sorting ---------- */
+function filtered(){
+  var q = $("search").value.trim().toLowerCase();
+  var p = $("productFilter").value, ht = $("typeFilter").value, src = $("sourceFilter").value, fl = $("flagFilter").value;
+  var days = parseInt($("rangeFilter").value,10), cutoff = days ? Date.now() - days*86400000 : 0;
+  var list = ALL.filter(function(r){
+    if (r.event !== "completed") return false;
+    if (fl === "hide" && r.flagged) return false;
+    if (fl === "only" && !r.flagged) return false;
+    if (p && r.product !== p) return false;
+    if (ht && r.hair_type !== ht) return false;
+    if (src === "new" && isLegacy(r)) return false;
+    if (src === "old" && !isLegacy(r)) return false;
+    if (cutoff && new Date(r.created_at).getTime() < cutoff) return false;
+    if (q) {
+      var hay = [r.email,r.notes,r.hair_type,r.density,r.thickness,r.porosity,r.porosity_fallback,r.product_behavior,NAMES[r.product]].join(" ").toLowerCase();
+      if (hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+  list.sort(function(a,b){
+    var x=a[sortKey], y=b[sortKey];
+    if (x==null && y==null) return 0; if (x==null) return 1; if (y==null) return -1;
+    if (typeof x==="boolean") { x=x?1:0; y=y?1:0; }
+    return (x<y?-1:x>y?1:0) * sortDir;
+  });
+  return list;
+}
+
+function buildHeader(){
+  var tr = $("thead"); tr.textContent="";
+  COLS.forEach(function(c){
+    var th = document.createElement("th");
+    if (!c[2]) th.className="nosort";
+    var arrow = (sortKey===c[0]) ? (sortDir>0?" \u25B2":" \u25BC") : "";
+    th.textContent = c[1] + arrow;
+    if (c[2]) th.onclick = function(){ if (sortKey===c[0]) sortDir=-sortDir; else { sortKey=c[0]; sortDir = (c[0]==="created_at"||c[0]==="shop_clicked_at")?-1:1; } shown=300; renderTable(); };
+    tr.appendChild(th);
+  });
+}
+
+function td(tr, text, cls){ var c=document.createElement("td"); if(cls) c.className=cls; c.textContent = text==null?"":text; tr.appendChild(c); return c; }
+
+function renderTable(){
+  buildHeader();
+  var list = filtered();
+  var completedAll = ALL.filter(function(r){return r.event==="completed";}).length;
+  $("count").textContent = "Showing " + Math.min(shown,list.length) + " of " + list.length + " matching results (" + completedAll + " total)";
+  var body = $("rows"); body.textContent = "";
+  list.slice(0, shown).forEach(function(r){
+    var tr = document.createElement("tr");
+    if (r.flagged) tr.className = "flagged";
+    tr.onclick = function(){ openDetail(r.id); };
+    td(tr, r.flagged ? "\u2691" : "");
+    td(tr, fmtDate(r.created_at));
+    var e = td(tr, r.email);
+    if (r.notes) { var t=document.createElement("span"); t.className="tag"; t.textContent="note"; e.appendChild(t); }
+    if (isLegacy(r)) { var t2=document.createElement("span"); t2.className="tag"; t2.textContent="old quiz"; e.appendChild(t2); }
+    td(tr, r.hair_type ? r.hair_type.toUpperCase() : "");
+    td(tr, pretty(r.density)); td(tr, pretty(r.thickness)); td(tr, pretty(r.porosity));
+    td(tr, pretty(r.porosity_fallback)); td(tr, pretty(r.product_behavior));
+    var c = document.createElement("td"); var s = document.createElement("span");
+    s.className = "pill " + (r.product||""); s.textContent = NAMES[r.product] || r.product || ""; c.appendChild(s); tr.appendChild(c);
+    td(tr, r.shop_clicked_at ? "\u2713 " + fmtDate(r.shop_clicked_at) : (r.session_id ? "\u2013" : ""), r.shop_clicked_at ? "" : "muted");
+    body.appendChild(tr);
+  });
+  $("moreWrap").hidden = list.length <= shown;
+}
+
+/* ---------- main render ---------- */
+function render(){
+  var stat = ALL.filter(function(r){ return !r.flagged; });
+  var completed = stat.filter(function(r){return r.event==="completed";});
+  var drops = stat.filter(function(r){return r.event==="dropoff";});
+  var started = completed.length + drops.length;
+  var rate = started ? Math.round(completed.length/started*100) : 0;
+  var week = completed.filter(function(r){return Date.now()-new Date(r.created_at).getTime() < 7*86400000;}).length;
+  var tracked = completed.filter(function(r){return r.session_id;});
+  var clicked = tracked.filter(function(r){return r.shop_clicked_at;});
+  var clickRate = tracked.length ? Math.round(clicked.length/tracked.length*100)+"%" : "\u2013";
+
+  var cards = $("cards"); cards.textContent = "";
+  [[completed.length,"Completed quizzes"],[week,"Last 7 days"],[drops.length,"Drop-offs"],[rate+"%","Completion rate"],[clickRate,"Clicked Shop Now"]].forEach(function(c){
+    var d=document.createElement("div"); d.className="card";
+    d.innerHTML='<div class="n"></div><div class="l"></div>'; d.children[0].textContent=c[0]; d.children[1].textContent=c[1]; cards.appendChild(d);
+  });
+
+  drawTrend(completed, drops);
+  bars($("productBars"), tally(completed,function(r){return NAMES[r.product]||r.product;}));
+
+  // conversion by product (only quizzes taken since click tracking started)
+  var conv = Object.keys(NAMES).map(function(k){
+    var t = tracked.filter(function(r){return r.product===k;}), c = t.filter(function(r){return r.shop_clicked_at;});
+    return t.length ? [NAMES[k], Math.round(c.length/t.length*100), Math.round(c.length/t.length*100)+"%  ("+c.length+"/"+t.length+")"] : null;
+  }).filter(Boolean);
+  bars($("convBars"), conv, { max:100 });
+  $("convNote").textContent = tracked.length ? "Based on " + tracked.length + " quizzes taken since click tracking began." : "Tracking starts with the next quiz taken on the updated quiz file.";
+
+  bars($("dropBars"), tally(drops,function(r){return r.dropped_at_step==null?"Unknown (old quiz)":(STEPS[r.dropped_at_step]||("Step "+r.dropped_at_step));}));
+  bars($("typeBars"), tally(completed,function(r){return r.hair_type ? r.hair_type.toUpperCase() : "";}));
+
+  // time per question (new quiz only)
+  var buckets = {};
+  completed.concat(drops).forEach(function(r){
+    if (isLegacy(r) || !r.timings) return;
+    for (var s=1; s<=8; s++){
+      var v = parseFloat(r.timings["step"+s+"_sec"]);
+      if (!isNaN(v)) (buckets[s] = buckets[s] || []).push(v);
+    }
+  });
+  var tEntries = Object.keys(TIME_STEPS).filter(function(s){return buckets[s];}).map(function(s){
+    var m = median(buckets[s]); return [TIME_STEPS[s], m, Math.round(m*10)/10 + "s  (n=" + buckets[s].length + ")"];
+  });
+  bars($("timeBars"), tEntries);
+
+  renderTable();
+  if (openId != null) { var still = ALL.some(function(r){return r.id===openId;}); if (!still) closeDetail(); }
+}
+
+/* ---------- detail drawer ---------- */
+function openDetail(id){
+  var r = ALL.filter(function(x){return x.id===id;})[0]; if (!r) return;
+  openId = id;
+  var d = $("drawer"); d.textContent = "";
+  function h(tag, text, cls){ var e=document.createElement(tag); if(cls) e.className=cls; e.textContent=text; d.appendChild(e); return e; }
+  h("h2", r.email || "Anonymous visitor");
+  h("div", fmtDate(r.created_at) + (isLegacy(r) ? "  \u2022  old quiz" : ""), "sub");
+
+  var kv = document.createElement("div"); kv.className="kv";
+  [["Hair type", r.hair_type ? r.hair_type.toUpperCase() : ""], ["Density", pretty(r.density)], ["Thickness", pretty(r.thickness)],
+   ["Porosity", pretty(r.porosity)], ["Porosity fallback", pretty(r.porosity_fallback)], ["Product behavior", pretty(r.product_behavior)],
+   ["Match", NAMES[r.product] || ""], ["Clicked Shop Now", r.shop_clicked_at ? fmtDate(r.shop_clicked_at) : (r.session_id ? "Not yet" : "Not tracked")]
+  ].forEach(function(p){
+    if (!p[1]) return;
+    var k=document.createElement("div"); k.className="k"; k.textContent=p[0];
+    var v=document.createElement("div"); v.textContent=p[1]; kv.appendChild(k); kv.appendChild(v);
+  });
+  d.appendChild(kv);
+
+  if (r.legacy) { h("h3","Old quiz answers"); var pre=document.createElement("pre"); pre.textContent = Object.keys(r.legacy).map(function(k){return pretty(k)+": "+r.legacy[k];}).join("\n"); d.appendChild(pre); }
+  if (r.timings) {
+    var tl = Object.keys(r.timings).map(function(k){ var m=k.match(/^step(\d)_sec$/); return (m && TIME_STEPS[m[1]] ? TIME_STEPS[m[1]] : pretty(k.replace(/_sec$/,""))) + ": " + r.timings[k] + "s"; });
+    if (tl.length) { h("h3","Time spent"); var p2=document.createElement("pre"); p2.textContent = tl.join("\n"); d.appendChild(p2); }
+  }
+
+  h("h3","Notes" + (r.email ? " (shared across all quizzes from this email)" : ""));
+  var ta = document.createElement("textarea"); ta.value = r.notes || ""; ta.maxLength = 2000; ta.placeholder = "e.g. Emailed 11/5, bought Curl Power"; d.appendChild(ta);
+  var lab = document.createElement("label"); lab.className="flag";
+  var cb = document.createElement("input"); cb.type="checkbox"; cb.checked = !!r.flagged;
+  lab.appendChild(cb); lab.appendChild(document.createTextNode("Flag this row (test / spam) - hides it from charts and exports"));
+  d.appendChild(lab);
+
+  var btns = document.createElement("div"); btns.className="btns";
+  var save = document.createElement("button"); save.textContent="Save";
+  var del = document.createElement("button"); del.textContent="Delete row"; del.className="danger";
+  var close = document.createElement("button"); close.textContent="Close"; close.className="light";
+  btns.appendChild(save); btns.appendChild(close); btns.appendChild(del); d.appendChild(btns);
+
+  save.onclick = async function(){
+    save.disabled = true;
+    try {
+      await rpc("portal_update_row", { p_secret:KEY, p_id:r.id, p_flagged:cb.checked, p_notes:ta.value });
+      r.flagged = cb.checked;
+      var note = ta.value.trim() || null;
+      ALL.forEach(function(x){ if ((r.email && x.email === r.email) || x.id === r.id) x.notes = note; });
+      toast("Saved"); render(); closeDetail();
+    } catch(e){ toast(e.message); }
+    save.disabled = false;
+  };
+  del.onclick = async function(){
+    if (!confirm("Delete this row permanently? This can't be undone.")) return;
+    del.disabled = true;
+    try {
+      await rpc("portal_delete_row", { p_secret:KEY, p_id:r.id });
+      ALL = ALL.filter(function(x){return x.id!==r.id;});
+      toast("Deleted"); closeDetail(); render();
+    } catch(e){ toast(e.message); del.disabled = false; }
+  };
+  close.onclick = closeDetail;
+
+  if (r.email) {
+    var others = ALL.filter(function(x){ return x.email === r.email && x.id !== r.id && x.event==="completed"; });
+    if (others.length) {
+      h("h3", "Other quizzes from this email (" + others.length + ")");
+      var box = document.createElement("div"); box.className="others";
+      others.forEach(function(o){ var row=document.createElement("div"); row.textContent = fmtDate(o.created_at) + "  -  " + (NAMES[o.product]||"") + (o.hair_type ? "  -  " + o.hair_type.toUpperCase() : ""); box.appendChild(row); });
+      d.appendChild(box);
+    }
+  }
+  $("overlay").hidden = false;
+}
+function closeDetail(){ openId = null; $("overlay").hidden = true; }
+$("overlay").addEventListener("click", function(e){ if (e.target === $("overlay")) closeDetail(); });
+document.addEventListener("keydown", function(e){ if (e.key==="Escape" && !$("overlay").hidden) closeDetail(); });
+
+/* ---------- exports ---------- */
+function csvCell(v){ v = v==null?"":String(v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g,'""') + '"'; }
+function download(name, rows){
+  var blob = new Blob([rows.join("\n")], {type:"text/csv;charset=utf-8"});
+  var a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = name; document.body.appendChild(a); a.click(); a.remove();
+}
+function exportCsv(){
+  var cols = ["created_at","email","hair_type","density","thickness","porosity","porosity_fallback","product_behavior","product","shop_clicked_at","flagged","notes"];
+  var list = filtered();
+  download("flourish-quiz-results.csv", [cols.join(",")].concat(list.map(function(r){ return cols.map(function(c){return csvCell(r[c]);}).join(","); })));
+  toast("Exported " + list.length + " rows");
+}
+function exportMailingList(){
+  var seen = {}, out = [];
+  filtered().forEach(function(r){   // already newest-first by default; keep the most recent quiz per email
+    var e = (r.email||"").trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e) || seen[e] || r.flagged) return;
+    seen[e] = 1; out.push(r);
+  });
+  var cols = ["email","hair_type","product","quiz_date"];
+  download("flourish-mailing-list.csv", [cols.join(",")].concat(out.map(function(r){
+    return [r.email.trim(), r.hair_type ? r.hair_type.toUpperCase() : "", NAMES[r.product]||"", new Date(r.created_at).toISOString().slice(0,10)].map(csvCell).join(",");
+  })));
+  toast("Exported " + out.length + " unique emails (uses your current filters)");
+}
+
+/* ---------- wiring ---------- */
+(function(){ var sel=$("typeFilter"); ["2a","2b","2c","3a","3b","3c","4a","4b","4c"].forEach(function(t){ var o=document.createElement("option"); o.value=t; o.textContent=t.toUpperCase(); sel.appendChild(o); }); })();
+$("keyBtn").onclick = function(){ var k=$("keyInput").value.trim(); if(k) start(k); };
+$("keyInput").addEventListener("keydown", function(e){ if(e.key==="Enter") $("keyBtn").click(); });
+$("refreshBtn").onclick = function(){ start(KEY); };
+$("csvBtn").onclick = exportCsv;
+$("mailBtn").onclick = exportMailingList;
+$("moreBtn").onclick = function(){ shown += 300; renderTable(); };
+$("trendGran").addEventListener("change", render);
+["search","productFilter","typeFilter","sourceFilter","rangeFilter","flagFilter"].forEach(function(id){ $(id).addEventListener("input", function(){ shown=300; renderTable(); }); });
+
+var k = getKeyFromUrl();
+if (k) start(k); else $("login").hidden = false;
+</script>
+</body>
+</html>

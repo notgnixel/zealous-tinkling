@@ -453,11 +453,11 @@ h1, .subtitle, .enter-hint, .filled-count { color: #000; }
             <button class="btn" type="button" onclick="nextStep()">Ready to Flourish</button>
             <span class="enter-hint">press Enter &#8629;</span>
           </div>
-          <div class="filled-count">
+          <div class="filled-count" id="filledCount" style="display:none;">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
             </svg>
-            <span id="countLabel">800+ people have filled this out</span>
+            <span id="countLabel"></span>
           </div>
         </div>
 
@@ -583,9 +583,9 @@ h1, .subtitle, .enter-hint, .filled-count { color: #000; }
 // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 CONFIG \u2014 fill these in \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
 const POROSITY_VIDEO_ID = "";   // unlisted YouTube video ID (the part after ?v=). Leave blank to show the old diagram.
 const PRODUCT_IMAGES = {        // result-page product images
-  so_wavy: "https://cdn.shopify.com/s/files/1/0741/0797/8022/files/26.png?v=1709066129",
-  curl_power: "https://cdn.shopify.com/s/files/1/0741/0797/8022/files/28_c3939333-d511-4c2e-a9ed-e289523f579a.png?v=1709065046",
-  lovely_kinks: "https://cdn.shopify.com/s/files/1/0741/0797/8022/files/Untitled_design_2aee72f8-a051-4775-a0ff-2acf8bb77e51.png?v=1730749702"
+  so_wavy: "",
+  curl_power: "",
+  lovely_kinks: ""
 };
 const PRODUCTS = {
   so_wavy: {
@@ -595,7 +595,7 @@ const PRODUCTS = {
   },
   curl_power: {
     name: "Curl Power",
-    url: "https://flourishbysage.com/products/curl-power-hair-souffle-copy",
+    url: "https://flourishbysage.com/products/curl-power-hair-souffle",
     desc: "Made for curls that need moisture to actually absorb and stay soft without unnecessary buildup. A nourishing 3-in-1 leave-in, oil, and cream designed for defined, soft, bouncy curls."
   },
   lovely_kinks: {
@@ -604,7 +604,55 @@ const PRODUCTS = {
     desc: "Rich, nourishing moisture for hair that genuinely needs more conditioning support. Designed to help thicker, tighter textures stay soft, moisturized, and nourished."
   }
 };
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxEsnppMF5IRIGBslnYJW5pbi4NdYSWRXUbaRbJgZjS9ZtMlcrGBnWa3A2F-Dw6xQNZSg/exec";
+// Supabase (paste from Project Settings > API). Results are saved here instead of Google Sheets.
+const SUPABASE_URL = "https://jtbvhjmejhozhtndxlyj.supabase.co";        // e.g. https://abcdxyz.supabase.co
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0YnZoam1lamhvemh0bmR4bHlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM4Mjc1MDUsImV4cCI6MjEwOTQwMzUwNX0.F8_QimXKJ47fTDnOqcJKgSRiiUP-rGdlWwQ5JyOWI8M";   // the public "anon" key (safe in the browser; insert-only via RLS)
+
+var SESSION_ID = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID()
+  : (Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2));
+
+function trackShopClick(){
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+  try {
+    fetch(SUPABASE_URL + "/rest/v1/rpc/track_shop_click", {
+      method: "POST", keepalive: true,
+      headers: { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + SUPABASE_ANON_KEY },
+      body: JSON.stringify({ p_session: SESSION_ID })
+    }).catch(function(){});
+  } catch (e) {}
+}
+
+// Live entry count on the opening page (hidden until a real number loads)
+(function(){
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+  fetch(SUPABASE_URL + "/rest/v1/rpc/get_quiz_count", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + SUPABASE_ANON_KEY },
+    body: "{}"
+  }).then(function(r){ return r.ok ? r.json() : null; }).then(function(n){
+    if (typeof n === "number" && n > 0) {
+      document.getElementById("countLabel").textContent = n.toLocaleString() + " people have filled this out";
+      document.getElementById("filledCount").style.display = "";
+    }
+  }).catch(function(){});
+})();
+
+function saveRow(row){
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) { console.warn("Supabase not configured - result not saved."); return; }
+  try {
+    fetch(SUPABASE_URL + "/rest/v1/quiz_results", {
+      method: "POST",
+      keepalive: true,
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+        "Prefer": "return=minimal"
+      },
+      body: JSON.stringify(row)
+    }).catch(function(){});
+  } catch (e) {}
+}
 
 // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 Porosity video \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
 (function(){
@@ -627,12 +675,11 @@ btn.onclick = function(){ modal.style.display = "block"; };
 
 function trackDropoff(){
   if (currentStep > 1 && currentStep < EMAIL_STEP && !submitted) {
-    const p = new URLSearchParams({
+    saveRow({
       event: "dropoff",
       dropped_at_step: currentStep,
-      time_spent_sec: ((Date.now() - stepTimestamps[1]) / 1000).toFixed(1)
+      timings: { time_spent_sec: Number(((Date.now() - stepTimestamps[1]) / 1000).toFixed(1)) }
     });
-    fetch(SCRIPT_URL + "?" + p.toString(), { method: "GET", mode: "no-cors" });
   }
 }
 window.onclick = function(e){ if (e.target == modal) { trackDropoff(); modal.style.display = "none"; } };
@@ -768,8 +815,7 @@ document.getElementById("quizForm").addEventListener("submit", function(e){
   }
   if (stepTimestamps[EMAIL_STEP]) timings["step" + EMAIL_STEP + "_sec"] = ((Date.now() - stepTimestamps[EMAIL_STEP]) / 1000).toFixed(1);
 
-  const params = new URLSearchParams(Object.assign({}, profile, { email: email, product: productId }, timings));
-  fetch(SCRIPT_URL + "?" + params.toString(), { method: "GET", mode: "no-cors" });
+  saveRow(Object.assign({ event: "completed", email: email, product: productId, timings: timings, session_id: SESSION_ID }, profile));
 
   // Result page
   document.getElementById("quizForm").style.display = "none";
@@ -783,7 +829,7 @@ document.getElementById("quizForm").addEventListener("submit", function(e){
   scrollModalTop();
 });
 
-function goToProduct(){ window.location.href = window.productURL; }
+function goToProduct(){ trackShopClick(); window.location.href = window.productURL; }
 </script>
 </body>
 </html>
